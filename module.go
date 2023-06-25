@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"sync"
 
 	"golang.org/x/mod/modfile"
 	"golang.org/x/tools/go/analysis"
@@ -24,24 +25,40 @@ type ModInfo struct {
 	Main      bool   `json:"Main"`
 }
 
+var (
+	once        sync.Once
+	information []ModInfo
+	errInfo     error
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:       "modinfo",
 	Doc:        "Module information",
-	Run:        run,
-	ResultType: reflect.TypeOf(([]ModInfo)(nil)),
+	Run:        runOnce,
+	ResultType: reflect.TypeOf([]ModInfo(nil)),
 }
 
-func run(pass *analysis.Pass) (any, error) {
+func runOnce(pass *analysis.Pass) (any, error) {
+	once.Do(func() {
+		information, errInfo = GetModuleInfo(pass)
+	})
+
+	return information, errInfo
+}
+
+// GetModuleInfo gets modules information.
+// Always returns 1 element except for workspace (returns all the modules of the workspace).
+// Based on `go list -m -json` behavior.
+func GetModuleInfo(pass *analysis.Pass) ([]ModInfo, error) {
 	// https://github.com/golang/go/issues/44753#issuecomment-790089020
 	cmd := exec.Command("go", "list", "-m", "-json")
-	// FIXME useless?
 	for _, file := range pass.Files {
-		f := pass.Fset.File(file.Pos()).Name()
-		if filepath.Ext(f) != ".go" {
+		name := pass.Fset.File(file.Pos()).Name()
+		if filepath.Ext(name) != ".go" {
 			continue
 		}
 
-		cmd.Dir = filepath.Dir(f)
+		cmd.Dir = filepath.Dir(name)
 		break
 	}
 
@@ -80,7 +97,13 @@ func run(pass *analysis.Pass) (any, error) {
 	return infos, nil
 }
 
-func FindModule(infos []ModInfo, pass *analysis.Pass) (ModInfo, error) {
+// FindModuleFromPass finds the module related to the files of the pass.
+func FindModuleFromPass(pass *analysis.Pass) (ModInfo, error) {
+	infos, ok := pass.ResultOf[Analyzer].([]ModInfo)
+	if !ok {
+		return ModInfo{}, errors.New("no modinfo analyzer result")
+	}
+
 	var name string
 	for _, file := range pass.Files {
 		f := pass.Fset.File(file.Pos()).Name()
@@ -93,7 +116,7 @@ func FindModule(infos []ModInfo, pass *analysis.Pass) (ModInfo, error) {
 	}
 
 	if name == "" {
-		return ModInfo{}, errors.New("OOPS")
+		return ModInfo{}, errors.New("no Go file found in analysis pass")
 	}
 
 	for _, info := range infos {
@@ -106,6 +129,17 @@ func FindModule(infos []ModInfo, pass *analysis.Pass) (ModInfo, error) {
 	return ModInfo{}, errors.New("module information not found")
 }
 
+// ReadModuleFileFromPass read the `go.mod` file from the pass result.
+func ReadModuleFileFromPass(pass *analysis.Pass) (*modfile.File, error) {
+	info, err := FindModuleFromPass(pass)
+	if err != nil {
+		return nil, err
+	}
+
+	return ReadModuleFile(info)
+}
+
+// ReadModuleFile read the `go.mod` file.
 func ReadModuleFile(info ModInfo) (*modfile.File, error) {
 	raw, err := os.ReadFile(info.GoMod)
 	if err != nil {

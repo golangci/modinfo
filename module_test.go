@@ -5,8 +5,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/analysistest"
 )
+
+func run(pass *analysis.Pass) (any, error) {
+	return GetModuleInfo(pass)
+}
 
 func TestAnalyzer(t *testing.T) {
 	// NOTE: analysistest does not yet support modules;
@@ -44,9 +49,12 @@ func TestAnalyzer(t *testing.T) {
 		},
 	}
 
+	a := Analyzer
+	a.Run = run
+
 	for _, test := range testCases {
 		t.Run(test.desc, func(t *testing.T) {
-			results := analysistest.RunWithSuggestedFixes(t, analysistest.TestData(), Analyzer, test.patterns...)
+			results := analysistest.RunWithSuggestedFixes(t, analysistest.TestData(), a, test.patterns...)
 			for _, result := range results {
 				infos, ok := result.Result.([]ModInfo)
 				require.True(t, ok)
