@@ -1,3 +1,3 @@
-module github.com/ldez/gomoddirectives/testdata/b
+module github.com/golangci/modinfo/testdata/b
 
 go 1.16
