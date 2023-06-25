@@ -1,4 +1,4 @@
-module github.com/ldez/modinfo
+module github.com/golangci/modinfo
 
 go 1.20
 

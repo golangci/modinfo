@@ -12,7 +12,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/ldez/modinfo"
+	"github.com/golangci/modinfo"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
 )
@@ -45,7 +45,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/ldez/modinfo"
+	"github.com/golangci/modinfo"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
 )
