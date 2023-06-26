@@ -34,6 +34,7 @@ var (
 var Analyzer = &analysis.Analyzer{
 	Name:       "modinfo",
 	Doc:        "Module information",
+	URL:        "https://github.com/golangci/modinfo",
 	Run:        runOnce,
 	ResultType: reflect.TypeOf([]ModInfo(nil)),
 }
