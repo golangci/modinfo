@@ -39,6 +39,11 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func runOnce(pass *analysis.Pass) (any, error) {
+	_, ok := os.LookupEnv("MODINFO_DEBUG_DISABLE_ONCE")
+	if ok {
+		return GetModuleInfo(pass)
+	}
+
 	once.Do(func() {
 		information, errInfo = GetModuleInfo(pass)
 	})
@@ -121,6 +126,7 @@ func FindModuleFromPass(pass *analysis.Pass) (ModInfo, error) {
 
 	for _, info := range infos {
 		if !strings.HasPrefix(name, info.Dir) {
+			println(name, info.Dir)
 			continue
 		}
 		return info, nil
