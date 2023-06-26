@@ -21,7 +21,7 @@ var Analyzer = &analysis.Analyzer{
     Name: "example",
     Doc:  "Example",
     Run: func(pass *analysis.Pass) (interface{}, error) {
-			file, err := modinfo.ReadModuleFileFromPass(pass)
+        file, err := modinfo.ReadModuleFileFromPass(pass)
         if err != nil {
           return nil, err
         }
