@@ -26,7 +26,7 @@ var Analyzer = &analysis.Analyzer{
           return nil, err
         }
 
-        fmt.Println("go.md", file)
+        fmt.Println("go.mod", file)
 
         // TODO
 
