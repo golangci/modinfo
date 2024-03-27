@@ -1,14 +1,12 @@
 run:
   timeout: 7m
-  skip-files: []
 
 linters-settings:
   govet:
-    check-shadowing: true
+    enable:
+      - shadow
   gocyclo:
     min-complexity: 12
-  maligned:
-    suggest-new: true
   goconst:
     min-len: 3
     min-occurrences: 3
@@ -17,8 +15,6 @@ linters-settings:
     statements: 50
   misspell:
     locale: US
-    ignore-words:
-      - internetbs
   depguard:
     rules:
       main:
@@ -148,7 +144,7 @@ linters:
 
 issues:
   exclude-use-default: false
-  max-per-linter: 0
+  max-issues-per-linter: 0
   max-same-issues: 0
   exclude:
     - 'Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked'
