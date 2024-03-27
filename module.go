@@ -121,8 +121,9 @@ func FindModuleFromPass(pass *analysis.Pass) (ModInfo, error) {
 		break
 	}
 
+	// no Go file found in analysis pass
 	if name == "" {
-		return ModInfo{}, errors.New("no Go file found in analysis pass")
+		name, _ = os.Getwd()
 	}
 
 	for _, info := range infos {
